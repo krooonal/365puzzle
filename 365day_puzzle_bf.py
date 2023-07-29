@@ -1,5 +1,7 @@
 from __future__ import annotations
 from time import time
+import getopt
+import sys
 
 board_max_x = 7
 board_max_y = 7
@@ -21,7 +23,27 @@ class Block:
     def AddRect(self, rect: Rectangle):
         self.rects.append(rect)
 
-def main():
+def main(argv):
+
+    month = 'JAN'
+    date = ' 26'
+
+    try:
+        opts, args = getopt.getopt(argv, "hD:M:",
+                                   ["date=",
+                                    "month="])
+    except getopt.GetoptError:
+        print_options()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print_options()
+            sys.exit()
+        elif opt in ("-D", "--date"):
+            date = arg
+        elif opt in ("-M", "--month"):
+            month = arg
+
     all_orientations = DefineAllOrientations()
     grid = [['X' for i in range(board_max_y)] for j in range(board_max_x)]
 
@@ -48,9 +70,6 @@ def main():
         print(row)
     for row in orig_grid:
         print(row)
-
-    month = 'JAN'
-    date = ' 26'
     
     month_x, month_y = GetGridIntervals(grid, month)
     date_x, date_y = GetGridIntervals(grid, date)
@@ -75,8 +94,14 @@ def main():
     for row in grid:
         print(row)
 
+def print_options():
+    print('365day_puzzle_bf.py')
+    print(' -D <date>')
+    print(' -M <month>')
+
 # Put all blocks starting from block_id, ori_id
-def Solve(grid, orig_grid, block_id, ori_id, all_orientations):
+def Solve(grid: list[list[str]], orig_grid: list[list[str]], block_id: int, 
+          ori_id: int, all_orientations: list[list[Block]]):
     block = all_orientations[block_id][ori_id]
     for startx in range(board_max_x):
         for starty in range(board_max_y):
@@ -100,14 +125,14 @@ def Solve(grid, orig_grid, block_id, ori_id, all_orientations):
     return False
 
 
-def RemoveBlockFromGrid(grid, block_id, orig_grid):
+def RemoveBlockFromGrid(grid: list[list[str]], block_id: int, orig_grid: list[list[str]]):
     block_str = '*' + str(block_id+1) + '*'
     for x in range(board_max_x):
         for y in range(board_max_y):
             if grid[x][y] == block_str:
                 grid[x][y] = orig_grid[x][y]
 
-def PutBlockOnGridXY(grid, block, block_id, startx, starty):
+def PutBlockOnGridXY(grid: list[list[str]], block: Block, block_id: int, startx: int, starty: int):
     for rect in block.rects:
         rect_x_start = startx + rect.startx
         rect_y_start = starty + rect.starty
@@ -306,4 +331,4 @@ def DefineAllOrientations():
     return all_orientations
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

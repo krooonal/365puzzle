@@ -1,5 +1,7 @@
 from __future__ import annotations
 from ortools.sat.python import cp_model
+import getopt
+import sys
 
 board_max_x = 7
 board_max_y = 7
@@ -44,7 +46,26 @@ class Block:
         rect.y_inter_var = self.model.NewOptionalFixedSizeIntervalVar(rect.y_var, rect.ylen, self.present, 
                                                                  self.name + "_y_" + str(rect_ind) + "_inter")
 
-def main():
+def main(argv):
+
+    month = 'JAN'
+    date = ' 26'
+
+    try:
+        opts, args = getopt.getopt(argv, "hD:M:",
+                                   ["date=",
+                                    "month="])
+    except getopt.GetoptError:
+        print_options()
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print_options()
+            sys.exit()
+        elif opt in ("-D", "--date"):
+            date = arg
+        elif opt in ("-M", "--month"):
+            month = arg
 
     model = cp_model.CpModel()
     all_orientations = DefineAllOrientations(model)
@@ -78,9 +99,6 @@ def main():
 
     for row in grid:
         print(row)
-
-    month = 'JAN'
-    date = ' 01'
     
     month_x_interval, month_y_interval = GetGridIntervals(model, grid, month)
     date_x_interval, date_y_interval = GetGridIntervals(model, grid, date)
@@ -111,6 +129,11 @@ def main():
     
     for row in grid:
         print(row)
+
+def print_options():
+    print('365day_puzzle_bf.py')
+    print(' -D <date>')
+    print(' -M <month>')
 
 def AddOrientationCons(model: cp_model.CpModel, orien: list[Block]):
     bool_vars = [block.present for block in orien]
@@ -327,4 +350,4 @@ def DefineAllOrientations(model: cp_model.CpModel):
     return all_orientations
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
