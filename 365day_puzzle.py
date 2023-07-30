@@ -21,10 +21,8 @@ class Block:
     def __init__(self, name: str, model: cp_model.CpModel) -> None:
         self.name = name
         self.model = model
-        self.maxx = 10000
-        self.maxy = 10000
-        self.xvar = self.model.NewIntVar(0,self.maxx,self.name + "_x")
-        self.yvar = self.model.NewIntVar(0,self.maxy,self.name + "_y")
+        self.xvar = self.model.NewIntVar(0,1000,self.name + "_x")
+        self.yvar = self.model.NewIntVar(0,1000,self.name + "_y")
         self.present = self.model.NewBoolVar(self.name + "_present")
         self.rects = []
         
@@ -32,14 +30,14 @@ class Block:
     def AddRect(self, rect: Rectangle):
         self.rects.append(rect)
         rect_ind = len(self.rects)
-        rect.x_var = self.model.NewIntVar(0,self.maxx ,
+        rect.x_var = self.model.NewIntVar(0,1000 ,
                                  self.name + "_x_" + str(rect_ind))
         self.model.Add(self.xvar + rect.startx == rect.x_var)
         self.model.Add(rect.x_var + rect.xlen <= board_max_x)
         rect.x_inter_var = self.model.NewOptionalFixedSizeIntervalVar(rect.x_var, rect.xlen, self.present, 
                                                                  self.name + "_x_" + str(rect_ind) + "_inter")
         
-        rect.y_var = self.model.NewIntVar(0,self.maxy ,
+        rect.y_var = self.model.NewIntVar(0,1000 ,
                                  self.name + "_y_" + str(rect_ind))
         self.model.Add(self.yvar + rect.starty == rect.y_var)
         self.model.Add(rect.y_var + rect.ylen <= board_max_y)
@@ -131,13 +129,12 @@ def main(argv):
         print(row)
 
 def print_options():
-    print('365day_puzzle_bf.py')
+    print('365day_puzzle.py')
     print(' -D <date>')
     print(' -M <month>')
 
 def AddOrientationCons(model: cp_model.CpModel, orien: list[Block]):
     bool_vars = [block.present for block in orien]
-    # print(len(bool_vars))
     model.AddExactlyOne(bool_vars)
     
 
@@ -172,8 +169,8 @@ def GetGridIntervals(model: cp_model.CpModel, grid: list[list[str]], entry: str)
         for y in range(board_max_y):
             if grid[x][y] == entry:
                 print("Reserving ", grid[x][y], x, y)
-                x_interval = model.NewFixedSizeIntervalVar(x,1,"m_x")
-                y_interval = model.NewFixedSizeIntervalVar(y,1,"m_y")
+                x_interval = model.NewFixedSizeIntervalVar(x,1,entry+"_x")
+                y_interval = model.NewFixedSizeIntervalVar(y,1,entry+"m_y")
                 return (x_interval,y_interval)
     return (x_interval,y_interval)
 
